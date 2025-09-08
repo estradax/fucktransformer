@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
   gpt2.eval()
   with torch.no_grad():
-    dat = torch.tensor(enc.encode('Indonesia, dengan nama resmi Republik Indonesia,')).unsqueeze(0)
+    dat = torch.tensor(enc.encode('Indonesia adalah')).unsqueeze(0)
     generated = gpt2.generate(dat, max_new_tokens=100)
 
     print(enc.decode_batch(generated.tolist()))

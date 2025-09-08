@@ -13,10 +13,20 @@ class FileTextDataset(Dataset):
     self.token_ids = self.tokenizer.encode(text)
 
   def __len__(self):
+    if len(self.token_ids) < self.block_size:
+      return len(self.token_ids)
     return len(self.token_ids) - self.block_size
 
   def __getitem__(self, idx):
     x = torch.tensor(self.token_ids[idx:idx+self.block_size])
     y = torch.tensor(self.token_ids[idx+1:idx+self.block_size+1])
-    return x, y
 
+    # Ensure x and y have the same shape by padding if necessary
+    if len(x) > len(y):
+      # Pad y with the last token to match x's length
+      y = torch.cat([y, torch.tensor([self.token_ids[-1]])])
+    elif len(y) > len(x):
+      # Truncate y to match x's length
+      y = y[:len(x)]
+    
+    return x, y

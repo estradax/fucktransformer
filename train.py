@@ -23,7 +23,7 @@ def get_cosine_schedule_with_warmup(optimizer, warmup_steps, total_steps, min_lr
 
 if __name__ == '__main__':
   lr = 1e-3
-  batch_size = 4
+  batch_size = 1
   epochs = 5
   device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
   print(f'Using device: {device}')
@@ -41,6 +41,8 @@ if __name__ == '__main__':
 
   model.to(device)
   model.train()
+
+  print('Total tokens:', len(dataset.token_ids))
 
   for epoch in range(epochs):
     total_loss = 0.0
