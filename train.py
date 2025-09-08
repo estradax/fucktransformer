@@ -8,26 +8,9 @@ from torch.utils.data import Dataset, DataLoader
 
 from models.gpt2 import GPT2, GPT2Config
 from utils.utils import save_checkpoint
+from utils.dataset import FileTextDataset
 
 torch.manual_seed(420)
-
-class IndonesiaWikipediaDataset(Dataset):
-  def __init__(self):
-    self.tokenizer = tiktoken.get_encoding('gpt2')
-
-    with open('sample_data/indonesia_wikipedia.txt', 'r', encoding='utf-8') as f:
-      text = f.read()
-
-    self.token_ids = self.tokenizer.encode(text)
-    self.block_size = 128
-
-  def __len__(self):
-    return len(self.token_ids) - self.block_size
-
-  def __getitem__(self, idx):
-    x = torch.tensor(self.token_ids[idx:idx+self.block_size])
-    y = torch.tensor(self.token_ids[idx+1:idx+self.block_size+1])
-    return x, y
 
 def get_cosine_schedule_with_warmup(optimizer, warmup_steps, total_steps, min_lr=0.0):
   def lr_lambda(current_step):
@@ -45,10 +28,12 @@ if __name__ == '__main__':
   device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
   print(f'Using device: {device}')
 
-  dataset = IndonesiaWikipediaDataset()
+  enc = tiktoken.get_encoding('gpt2')
+  cfg = GPT2Config(vocab_size=enc.n_vocab)
+
+  dataset = FileTextDataset('sample_data/indonesia_wikipedia.txt', tokenizer=enc, block_size=cfg.max_seq_len)
   dataloader = DataLoader(dataset, batch_size=batch_size)
 
-  cfg = GPT2Config(vocab_size=dataset.tokenizer.n_vocab)
   model = GPT2(cfg)
   optimizer = optim.AdamW(model.parameters(), lr=lr)
   scheduler = ReduceLROnPlateau(optimizer)
